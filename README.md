@@ -1,4 +1,4 @@
-# smart_doorbell_with_horn_detection
+# Smart Doorbell with Horn Detection System
 
 A new Flutter project.
 
