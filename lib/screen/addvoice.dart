@@ -21,8 +21,8 @@ class _AddVoiceState extends State<AddVoice> {
   final _formKey = GlobalKey<FormState>();
 
   // For recorder and player
-  Codec _codec = Codec.aacMP4;
-  String _mPath = '/sdcard/Download/tau_file.mp4';
+  Codec _codec = Codec.pcm16WAV;
+  String _mPath = '/sdcard/Download/tau_file.wav';
   FlutterSoundPlayer? _mPlayer = FlutterSoundPlayer();
   FlutterSoundRecorder? _mRecorder = FlutterSoundRecorder();
   bool _mPlayerIsInited = false;
