@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "907484110812",
+    "project_id": "smart-doorbell-horn-detection",
+    "storage_bucket": "smart-doorbell-horn-detection.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:907484110812:android:cba5a755c118211138b919",
+        "android_client_info": {
+          "package_name": "com.aimaduddin.smart_doorbell_with_horn_detection"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "907484110812-7hqpdmvr58sij7tu7q2mf71fssuice5e.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAW2B261nDh1rqkaCRGTjp85hTHRVC_seg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "907484110812-7hqpdmvr58sij7tu7q2mf71fssuice5e.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
