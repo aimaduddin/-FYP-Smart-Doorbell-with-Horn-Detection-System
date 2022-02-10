@@ -58,7 +58,9 @@ class _AddVoiceState extends State<AddVoice> {
   Future<void> openTheRecorder() async {
     if (!kIsWeb) {
       var status = await Permission.microphone.request();
-      if (status != PermissionStatus.granted) {
+      var status2 = await Permission.manageExternalStorage.request();
+      if (status != PermissionStatus.granted &&
+          status2 != PermissionStatus.granted) {
         throw RecordingPermissionException('Microphone permission not granted');
       }
     }
