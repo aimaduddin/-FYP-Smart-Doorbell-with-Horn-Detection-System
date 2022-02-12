@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:http/http.dart' as http;
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:smart_doorbell_with_horn_detection/utils/const.dart';
@@ -19,15 +21,36 @@ class AddVoice extends StatefulWidget {
 
 class _AddVoiceState extends State<AddVoice> {
   final _formKey = GlobalKey<FormState>();
+  String titleOfAudio = "";
+
+  // Get current date and time for temp voice file name.
+  // String fdatetime = DateFormat('dd-MMM-yyy').format(
+  //     DateTime.fromMillisecondsSinceEpoch(DateTime.now()
+  //         .millisecondsSinceEpoch)); //DateFormat() is from intl package
 
   // For recorder and player
   Codec _codec = Codec.pcm16WAV;
-  String _mPath = '/sdcard/Download/tau_file.wav';
+  String _mPath = '/sdcard/Download/recordedFile.wav';
   FlutterSoundPlayer? _mPlayer = FlutterSoundPlayer();
   FlutterSoundRecorder? _mRecorder = FlutterSoundRecorder();
   bool _mPlayerIsInited = false;
   bool _mRecorderIsInited = false;
   bool _mplaybackReady = false;
+
+  // For uploading the voice file
+  String uploadURL = "http://192.168.0.120/smart-doorbell/upload.php";
+
+  Future<String> uploadFile() async {
+    var request = http.MultipartRequest('POST', Uri.parse(uploadURL));
+    request.files.add(
+      await http.MultipartFile.fromPath('sendaudio', _mPath),
+    );
+    request.fields['title'] = titleOfAudio;
+    var res = await request.send();
+    var responsed = await http.Response.fromStream(res);
+    var result = json.decode(responsed.body);
+    return result["message"];
+  }
 
   @override
   void initState() {
@@ -230,6 +253,8 @@ class _AddVoiceState extends State<AddVoice> {
                       if (value == null || value.isEmpty) {
                         return 'Please enter the title of the voice message';
                       }
+                      titleOfAudio = value;
+
                       return null;
                     },
                   ),
@@ -252,6 +277,9 @@ class _AddVoiceState extends State<AddVoice> {
                       borderColor: Color(0xff4caf50),
                       callback: () {
                         if (_formKey.currentState!.validate()) {
+                          Future<String> res = uploadFile();
+                          print(res);
+
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Processing Data')),
                           );
