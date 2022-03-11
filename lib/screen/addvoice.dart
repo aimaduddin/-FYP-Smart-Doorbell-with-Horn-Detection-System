@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:smart_doorbell_with_horn_detection/screen/homepage.dart';
 import 'package:smart_doorbell_with_horn_detection/utils/const.dart';
 import 'package:smart_doorbell_with_horn_detection/widgets/actionbutton.dart';
 import 'package:flutter_sound_platform_interface/flutter_sound_recorder_platform_interface.dart';
@@ -36,11 +37,13 @@ class _AddVoiceState extends State<AddVoice> {
   bool _mPlayerIsInited = false;
   bool _mRecorderIsInited = false;
   bool _mplaybackReady = false;
+  String uploadMessage = "";
+  bool uploadStatus = false;
 
   // For uploading the voice file
   String uploadURL = "http://192.168.0.120/smart-doorbell/upload.php";
 
-  Future<String> uploadFile() async {
+  Future uploadFile() async {
     var request = http.MultipartRequest('POST', Uri.parse(uploadURL));
     request.files.add(
       await http.MultipartFile.fromPath('sendaudio', _mPath),
@@ -49,7 +52,8 @@ class _AddVoiceState extends State<AddVoice> {
     var res = await request.send();
     var responsed = await http.Response.fromStream(res);
     var result = json.decode(responsed.body);
-    return result["message"];
+    uploadMessage = result["message"];
+    uploadStatus = result["status"];
   }
 
   @override
@@ -275,14 +279,26 @@ class _AddVoiceState extends State<AddVoice> {
                       icon: Icons.save,
                       textInButton: 'Save',
                       borderColor: Color(0xff4caf50),
-                      callback: () {
+                      callback: () async {
                         if (_formKey.currentState!.validate()) {
-                          Future<String> res = uploadFile();
-                          print(res);
+                          await uploadFile();
 
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Processing Data')),
-                          );
+                          if (uploadStatus) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(uploadMessage)),
+                            );
+
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => HomePage(),
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(uploadMessage)),
+                            );
+                          }
                         }
                       },
                     ),
