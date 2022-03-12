@@ -4,11 +4,16 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:mqtt_client/mqtt_client.dart';
+import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:smart_doorbell_with_horn_detection/model/Audio.dart';
 import 'package:smart_doorbell_with_horn_detection/screen/addvoice.dart';
 import 'package:smart_doorbell_with_horn_detection/utils/api.dart';
 import 'package:smart_doorbell_with_horn_detection/utils/const.dart';
+import 'package:smart_doorbell_with_horn_detection/utils/mqtt_manager.dart';
 import 'package:smart_doorbell_with_horn_detection/widgets/actionbutton.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_mjpeg/flutter_mjpeg.dart';
 
 class HomePage extends StatefulWidget {
   HomePage({Key? key}) : super(key: key);
@@ -21,6 +26,10 @@ class _HomePageState extends State<HomePage> {
   List<Audio> _audios = [];
   String deleteMessage = "";
   bool deleteStatus = false;
+
+  // MQTT
+  late final MqttServerClient mqtt;
+  final topic1 = 'horndoorbell'; // Not a wildcard topic
 
   _getAudios() {
     API.getListOfAudios().then((response) {
@@ -43,10 +52,43 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  Future<void> initMQTT() async {
+    mqtt = await mqttManager();
+  }
+
+  sendMQTTCommand(String number) {
+    final builder1 = MqttClientPayloadBuilder();
+
+    builder1.addString(number);
+    print('EXAMPLE:: <<<< PUBLISH 1 >>>>');
+    mqtt.publishMessage(topic1, MqttQos.atLeastOnce, builder1.payload!);
+
+    mqtt.updates!.listen((dynamic c) {
+      final MqttPublishMessage recMess = c[0].payload;
+      final pt =
+          MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
+      print(
+          'EXAMPLE::Change notification:: topic is <${c[0].topic}>, payload is <-- $pt -->');
+      print('');
+    });
+
+    /// If needed you can listen for published messages that have completed the publishing
+    /// handshake which is Qos dependant. Any message received on this stream has completed its
+    /// publishing handshake with the broker.
+    mqtt.published!.listen((MqttPublishMessage message) {
+      print(
+          'EXAMPLE::Published notification:: topic is ${message.variableHeader!.topicName}, with Qos ${message.header!.qos}');
+      // if (message.variableHeader!.topicName == topic3) {
+      //   print('EXAMPLE:: Non subscribed topic received.');
+      // }
+    });
+  }
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    initMQTT();
     _getAudios();
   }
 
@@ -58,6 +100,9 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    // For live streaming webcam
+    bool isRunning = true;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: primaryColor,
@@ -72,15 +117,29 @@ class _HomePageState extends State<HomePage> {
             children: [
               const Text(liveVideoFeedTitle),
               height15,
-              Image.network("http://via.placeholder.com/640x360"),
+              Mjpeg(
+                isLive: isRunning,
+                error: (context, error, stack) {
+                  print(error);
+                  print(stack);
+                  return Text(error.toString(),
+                      style: TextStyle(color: Colors.red));
+                },
+                stream:
+                    'http://192.168.0.178:8000/stream.mjpg', //'http://192.168.1.37:8081',
+              ),
               height15,
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   ActionButton(
                     icon: Icons.speaker,
-                    textInButton: "Listen",
-                    callback: () {},
+                    textInButton: "Toggle Video",
+                    callback: () {
+                      setState(() {
+                        isRunning = !isRunning;
+                      });
+                    },
                   ),
                   ActionButton(
                     icon: Icons.call,
@@ -134,7 +193,7 @@ class _HomePageState extends State<HomePage> {
         children: [
           SlidableAction(
             // An action can be bigger than the others.
-            onPressed: doNothing,
+            onPressed: null,
             backgroundColor: Colors.blue,
             foregroundColor: Colors.white,
             icon: Icons.play_arrow,
@@ -175,7 +234,9 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
             trailing: IconButton(
-              onPressed: () {},
+              onPressed: () {
+                sendMQTTCommand(_audios[index].name);
+              },
               icon: Icon(
                 Icons.send,
                 color: Colors.green,
