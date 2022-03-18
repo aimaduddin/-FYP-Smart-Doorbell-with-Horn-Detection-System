@@ -41,7 +41,7 @@ class _AddVoiceState extends State<AddVoice> {
   bool uploadStatus = false;
 
   // For uploading the voice file
-  String uploadURL = "http://192.168.0.120/smart-doorbell/upload.php";
+  String uploadURL = "https://aimaduddin.com/Smart-Doorbell/upload.php";
 
   Future uploadFile() async {
     var request = http.MultipartRequest('POST', Uri.parse(uploadURL));
