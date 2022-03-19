@@ -11,6 +11,7 @@ import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:smart_doorbell_with_horn_detection/model/Audio.dart';
 import 'package:smart_doorbell_with_horn_detection/screen/addvoice.dart';
+import 'package:smart_doorbell_with_horn_detection/screen/historylogs.dart';
 import 'package:smart_doorbell_with_horn_detection/utils/api.dart';
 import 'package:smart_doorbell_with_horn_detection/utils/const.dart';
 import 'package:smart_doorbell_with_horn_detection/utils/mqtt_manager.dart';
@@ -120,7 +121,19 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         backgroundColor: primaryColor,
         title: const Text(appTitle),
-        centerTitle: true,
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const HistoryLogs(),
+                ),
+              );
+            },
+            icon: Icon(Icons.history),
+          )
+        ],
       ),
       body: Center(
         child: Padding(
@@ -157,8 +170,10 @@ class _HomePageState extends State<HomePage> {
                   ActionButton(
                     icon: Icons.call,
                     textInButton: "Voice Call",
-                    callback: () {
-                      _joinMeeting();
+                    callback: () async {
+                      String logs = "The voice call session has been started";
+                      await API.createLog(logs, "1");
+                      // _joinMeeting();
                     },
                   ),
                 ],
@@ -249,8 +264,13 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
             trailing: IconButton(
-              onPressed: () {
+              onPressed: () async {
                 sendMQTTCommand(_audios[index].name);
+                print('clicked');
+                String logs = "The " +
+                    _audios[index].name +
+                    "sound has been played to the doorbell";
+                await API.createLog(logs, "2");
               },
               icon: Icon(
                 Icons.send,
