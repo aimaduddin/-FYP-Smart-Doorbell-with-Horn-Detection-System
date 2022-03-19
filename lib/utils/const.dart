@@ -6,6 +6,7 @@ const Color primaryColor = Color(0xff0066FF);
 // String
 const String appTitle = "Smart Doorbell App";
 const String liveVideoFeedTitle = "Live Video Feed";
+const String historyLogsTitle = "History Logs";
 
 // Height
 const SizedBox height30 = SizedBox(
