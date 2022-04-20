@@ -38,6 +38,7 @@ dependencies:
   flutter_mjpeg: ^2.0.1
   flutter_slidable: ^1.2.0
   flutter_sound: ^9.1.2
+  google_fonts: 2.2.0
   http: ^0.13.4
   intl: ^0.17.0
   jitsi_meet: ^4.0.0

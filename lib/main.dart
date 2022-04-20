@@ -3,6 +3,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:smart_doorbell_with_horn_detection/screen/homepage.dart';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -92,6 +93,9 @@ class _MyAppState extends State<MyApp> {
       title: 'Smart Doorbell with Horn Detection System',
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        textTheme: TextTheme(
+          bodyText2: GoogleFonts.montserrat(),
+        ),
       ),
       home: HomePage(),
     );

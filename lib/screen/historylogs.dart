@@ -38,12 +38,12 @@ class _HistoryLogsState extends State<HistoryLogs> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: primaryColor,
+        title: Text('List of History Logs'),
       ),
       body: Container(
         padding: const EdgeInsets.fromLTRB(15, 25, 15, 25),
         child: Column(
           children: [
-            Text(historyLogsTitle),
             Expanded(
               child: ListView.builder(
                 shrinkWrap: true,

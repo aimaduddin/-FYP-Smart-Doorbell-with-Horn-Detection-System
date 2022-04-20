@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:jitsi_meet/jitsi_meet.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
@@ -121,19 +122,7 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         backgroundColor: primaryColor,
         title: const Text(appTitle),
-        actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const HistoryLogs(),
-                ),
-              );
-            },
-            icon: Icon(Icons.history),
-          )
-        ],
+        centerTitle: true,
       ),
       body: Center(
         child: Padding(
@@ -141,7 +130,13 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             // mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text(liveVideoFeedTitle),
+              Text(
+                liveVideoFeedTitle,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
               height15,
               Mjpeg(
                 isLive: isRunning,
@@ -159,12 +154,15 @@ class _HomePageState extends State<HomePage> {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   ActionButton(
-                    icon: Icons.speaker,
-                    textInButton: "Toggle Video",
+                    icon: Icons.history,
+                    textInButton: "History Logs",
                     callback: () {
-                      setState(() {
-                        isRunning = !isRunning;
-                      });
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HistoryLogs(),
+                        ),
+                      );
                     },
                   ),
                   ActionButton(
@@ -173,7 +171,7 @@ class _HomePageState extends State<HomePage> {
                     callback: () async {
                       String logs = "The voice call session has been started";
                       await API.createLog(logs, "1");
-                      // _joinMeeting();
+                      _joinMeeting();
                     },
                   ),
                 ],
@@ -182,7 +180,12 @@ class _HomePageState extends State<HomePage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Send Pre-Recorded Voice'),
+                  Text(
+                    'Send Pre-Recorded Voice',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   IconButton(
                     onPressed: () {
                       Navigator.push(
@@ -255,12 +258,15 @@ class _HomePageState extends State<HomePage> {
           padding: const EdgeInsets.all(8.0),
           child: ListTile(
             leading: Text((index + 1).toString()),
-            title: Text(_audios[index].title),
+            title: Text(
+              _audios[index].title,
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontStyle: FontStyle.italic),
+            ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(_audios[index].name),
-                Text(_audios[index].date),
+                Text('Created on ${_audios[index].date}'),
               ],
             ),
             trailing: IconButton(

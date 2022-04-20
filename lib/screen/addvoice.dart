@@ -188,6 +188,7 @@ class _AddVoiceState extends State<AddVoice> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: primaryColor,
         title: Text('Add New Voice'),
       ),
       body: SingleChildScrollView(
@@ -198,9 +199,9 @@ class _AddVoiceState extends State<AddVoice> {
               children: [
                 Text('Add New Voice Message'),
                 height10,
-                Text('Hold the microphone icon below to start recording.'),
+                Text('Tap on the record button below'),
                 height5,
-                Text('Once done, release it.'),
+                Text('to record a new voice mesasge.'),
                 height30,
                 ElevatedButton(
                   onPressed: getRecorderFn(),
@@ -211,9 +212,7 @@ class _AddVoiceState extends State<AddVoice> {
                 SizedBox(
                   width: 20,
                 ),
-                Text(_mRecorder!.isRecording
-                    ? 'Recording in progress'
-                    : 'Recorder is stopped'),
+                Text(_mRecorder!.isRecording ? 'Recording in progress' : ''),
                 height30,
                 Container(
                   margin: const EdgeInsets.all(3),
@@ -238,9 +237,7 @@ class _AddVoiceState extends State<AddVoice> {
                     SizedBox(
                       width: 20,
                     ),
-                    Text(_mPlayer!.isPlaying
-                        ? 'Playback in progress'
-                        : 'Player is stopped'),
+                    Text(_mPlayer!.isPlaying ? 'Playback in progress' : ''),
                   ]),
                 ),
                 height30,
