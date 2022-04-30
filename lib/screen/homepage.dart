@@ -2,11 +2,10 @@
 
 import 'dart:convert';
 import 'dart:io';
-
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:jitsi_meet/jitsi_meet.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
@@ -39,6 +38,9 @@ class _HomePageState extends State<HomePage> {
   bool? isAudioOnly = true;
   bool? isAudioMuted = true;
   bool? isVideoMuted = true;
+
+  // Audio player for audio preview
+  AudioPlayer audioPlayer = new AudioPlayer();
 
   _getAudios() {
     API.getListOfAudios().then((response) {
@@ -226,7 +228,9 @@ class _HomePageState extends State<HomePage> {
         children: [
           SlidableAction(
             // An action can be bigger than the others.
-            onPressed: null,
+            onPressed: (value) {
+              getPlayAudio(_audios[index].name);
+            },
             backgroundColor: Colors.blue,
             foregroundColor: Colors.white,
             icon: Icons.play_arrow,
@@ -288,6 +292,8 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
+  _previewMusic() {}
 
   // JITSI Voice Call functions
   _onAudioOnlyChanged(bool? value) {
@@ -384,5 +390,11 @@ class _HomePageState extends State<HomePage> {
 
   _onError(error) {
     debugPrint("_onError broadcasted: $error");
+  }
+
+  void getPlayAudio(String fileName) async {
+    var url = "https://aimaduddin.com/Smart-Doorbell/upload/${fileName}";
+
+    var res = await audioPlayer.play(url, isLocal: true);
   }
 }
