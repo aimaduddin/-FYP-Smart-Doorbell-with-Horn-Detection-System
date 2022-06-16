@@ -33,6 +33,7 @@ class _HomePageState extends State<HomePage> {
   // MQTT
   late final MqttServerClient mqtt;
   final topic1 = 'horndoorbell'; // Not a wildcard topic
+  bool relayStatus = false; // by default the relay is off.
 
   // JITSI Voice Call feature
   bool? isAudioOnly = true;
@@ -42,6 +43,7 @@ class _HomePageState extends State<HomePage> {
   // Audio player for audio preview
   AudioPlayer audioPlayer = new AudioPlayer();
 
+  // [Function] To get recorded audio files from API
   _getAudios() {
     API.getListOfAudios().then((response) {
       setState(() {
@@ -51,6 +53,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  // [Function] Delete audio file from API
   _deleteAudio(String id) {
     API.deleteAudio(id).then((response) {
       setState(() {
@@ -67,6 +70,7 @@ class _HomePageState extends State<HomePage> {
     mqtt = await mqttManager();
   }
 
+  // [Function] Sending the MQTT command to the MQTT broker
   sendMQTTCommand(String number) {
     final builder1 = MqttClientPayloadBuilder();
 
@@ -83,21 +87,14 @@ class _HomePageState extends State<HomePage> {
       print('');
     });
 
-    /// If needed you can listen for published messages that have completed the publishing
-    /// handshake which is Qos dependant. Any message received on this stream has completed its
-    /// publishing handshake with the broker.
     mqtt.published!.listen((MqttPublishMessage message) {
       print(
           'EXAMPLE::Published notification:: topic is ${message.variableHeader!.topicName}, with Qos ${message.header!.qos}');
-      // if (message.variableHeader!.topicName == topic3) {
-      //   print('EXAMPLE:: Non subscribed topic received.');
-      // }
     });
   }
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     initMQTT();
     _getAudios();
@@ -110,7 +107,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
     super.dispose();
     JitsiMeet.removeAllListeners();
   }
@@ -125,12 +121,24 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: primaryColor,
         title: const Text(appTitle),
         centerTitle: true,
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const HistoryLogs(),
+                ),
+              );
+            },
+            icon: Icon(Icons.history_outlined),
+          ),
+        ],
       ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(15, 25, 15, 25),
           child: Column(
-            // mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
                 liveVideoFeedTitle,
@@ -149,24 +157,39 @@ class _HomePageState extends State<HomePage> {
                       style: TextStyle(color: Colors.red));
                 },
                 stream:
-                    'http://192.168.0.178:8000/stream.mjpg', //'http://192.168.1.37:8081',
+                    'http://192.168.1.123:8000/stream.mjpg', // Put the IP Address of Raspberry Pi that serve the Camera's view.
               ),
               height15,
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  ActionButton(
-                    icon: Icons.history,
-                    textInButton: "History Logs",
-                    callback: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const HistoryLogs(),
+                  relayStatus
+                      ? ActionButton(
+                          icon: Icons.lock,
+                          textInButton: "Close Gate",
+                          callback: () async {
+                            setState(() {
+                              relayStatus = false;
+                              sendMQTTCommand("offgate");
+                            });
+
+                            String logs = "The gate has been closed";
+                            await API.createLog(logs, "4");
+                          },
+                        )
+                      : ActionButton(
+                          icon: Icons.lock_open,
+                          textInButton: "Open Gate",
+                          callback: () async {
+                            setState(() {
+                              relayStatus = true;
+                              sendMQTTCommand("ongate");
+                            });
+
+                            String logs = "The gate has been opened";
+                            await API.createLog(logs, "3");
+                          },
                         ),
-                      );
-                    },
-                  ),
                   ActionButton(
                     icon: Icons.call,
                     textInButton: "Voice Call",
@@ -237,13 +260,21 @@ class _HomePageState extends State<HomePage> {
             label: 'Preview',
           ),
           SlidableAction(
-            onPressed: (value) {
+            onPressed: (value) async {
+              // send api to delete audio from the server
               _deleteAudio(_audios[index].id);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(deleteMessage),
                 ),
               );
+
+              // create log
+              String logs =
+                  "The recorded message (${_audios[index].name}) has been deleted";
+              await API.createLog(logs, "6");
+
+              // refresh the current list of pre-recorded messages.
               _getAudios();
             },
             backgroundColor: Color(0xFFFE4A49),
@@ -261,6 +292,7 @@ class _HomePageState extends State<HomePage> {
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: ListTile(
+            // display the title of the pre-recorded message
             leading: Text((index + 1).toString()),
             title: Text(
               _audios[index].title,
@@ -270,16 +302,18 @@ class _HomePageState extends State<HomePage> {
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // display the date created of the pre-recorded message
                 Text('Created on ${_audios[index].date}'),
               ],
             ),
             trailing: IconButton(
               onPressed: () async {
+                // send mqtt command (audio title) to mqtt brocker
                 sendMQTTCommand(_audios[index].name);
-                print('clicked');
                 String logs = "The " +
                     _audios[index].name +
-                    "sound has been played to the doorbell";
+                    " sound has been played to the doorbell";
+                // log the action
                 await API.createLog(logs, "2");
               },
               icon: Icon(
@@ -292,8 +326,6 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
-  _previewMusic() {}
 
   // JITSI Voice Call functions
   _onAudioOnlyChanged(bool? value) {
@@ -316,20 +348,13 @@ class _HomePageState extends State<HomePage> {
 
   _joinMeeting() async {
     String? serverUrl = null;
-
-    // Enable or disable any feature flag here
-    // If feature flag are not provided, default values will be used
-    // Full list of feature flags (and defaults) available in the README
     Map<FeatureFlagEnum, bool> featureFlags = {
       FeatureFlagEnum.WELCOME_PAGE_ENABLED: false,
     };
     if (!kIsWeb) {
-      // Here is an example, disabling features for each platform
       if (Platform.isAndroid) {
-        // Disable ConnectionService usage on Android to avoid issues (see README)
         featureFlags[FeatureFlagEnum.CALL_INTEGRATION_ENABLED] = false;
       } else if (Platform.isIOS) {
-        // Disable PIP on iOS as it looks weird
         featureFlags[FeatureFlagEnum.PIP_ENABLED] = false;
       }
     }
@@ -392,6 +417,7 @@ class _HomePageState extends State<HomePage> {
     debugPrint("_onError broadcasted: $error");
   }
 
+  // [Function] Play / Preview pre-recorded audio from homepage screen.
   void getPlayAudio(String fileName) async {
     var url = "https://aimaduddin.com/Smart-Doorbell/upload/${fileName}";
 

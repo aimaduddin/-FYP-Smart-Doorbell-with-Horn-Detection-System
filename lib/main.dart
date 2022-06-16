@@ -90,6 +90,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Smart Doorbell with Horn Detection System',
       theme: ThemeData(
         primarySwatch: Colors.blue,

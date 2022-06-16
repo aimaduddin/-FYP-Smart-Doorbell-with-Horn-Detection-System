@@ -15,6 +15,7 @@ class HistoryLogs extends StatefulWidget {
 class _HistoryLogsState extends State<HistoryLogs> {
   List<Log> _logs = [];
 
+  // Get logs data from API Json
   _getLogs() {
     API.getListOfLogs().then((response) {
       setState(() {
@@ -22,8 +23,6 @@ class _HistoryLogsState extends State<HistoryLogs> {
         _logs = list.map((model) => Log.fromJson(model)).toList();
       });
     });
-
-    print(_logs);
   }
 
   @override
@@ -64,9 +63,8 @@ class _HistoryLogsState extends State<HistoryLogs> {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           ListTile(
-            leading: _logs[index].activity_type_id == "1"
-                ? Icon(Icons.phone, size: 30)
-                : Icon(Icons.speaker, size: 30),
+            leading:
+                Icon(IconData(_logs[index].icon, fontFamily: 'MaterialIcons')),
             title: Text(_logs[index].activity),
             subtitle: Text(_logs[index].date),
           ),
