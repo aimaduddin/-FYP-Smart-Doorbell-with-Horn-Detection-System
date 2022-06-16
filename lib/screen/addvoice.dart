@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:smart_doorbell_with_horn_detection/screen/homepage.dart';
+import 'package:smart_doorbell_with_horn_detection/utils/api.dart';
 import 'package:smart_doorbell_with_horn_detection/utils/const.dart';
 import 'package:smart_doorbell_with_horn_detection/widgets/actionbutton.dart';
 import 'package:flutter_sound_platform_interface/flutter_sound_recorder_platform_interface.dart';
@@ -82,6 +83,7 @@ class _AddVoiceState extends State<AddVoice> {
     super.dispose();
   }
 
+  // Open recorded session
   Future<void> openTheRecorder() async {
     if (!kIsWeb) {
       var status = await Permission.microphone.request();
@@ -122,7 +124,7 @@ class _AddVoiceState extends State<AddVoice> {
     _mRecorderIsInited = true;
   }
 
-  // ----------------------  Here is the code for recording and playback -------
+  // Here is the code for recording and playback
 
   void record() {
     _mRecorder!
@@ -139,7 +141,6 @@ class _AddVoiceState extends State<AddVoice> {
   void stopRecorder() async {
     await _mRecorder!.stopRecorder().then((value) {
       setState(() {
-        //var url = value;
         _mplaybackReady = true;
       });
     });
@@ -167,8 +168,6 @@ class _AddVoiceState extends State<AddVoice> {
       setState(() {});
     });
   }
-
-// ----------------------------- UI --------------------------------------------
 
   _Fn? getRecorderFn() {
     if (!_mRecorderIsInited || !_mPlayer!.isStopped) {
@@ -205,8 +204,6 @@ class _AddVoiceState extends State<AddVoice> {
                 height30,
                 ElevatedButton(
                   onPressed: getRecorderFn(),
-                  //color: Colors.white,
-                  //disabledColor: Colors.grey,
                   child: Text(_mRecorder!.isRecording ? 'Stop' : 'Record'),
                 ),
                 SizedBox(
@@ -230,8 +227,6 @@ class _AddVoiceState extends State<AddVoice> {
                   child: Row(children: [
                     ElevatedButton(
                       onPressed: getPlaybackFn(),
-                      //color: Colors.white,
-                      //disabledColor: Colors.grey,
                       child: Text(_mPlayer!.isPlaying ? 'Stop' : 'Play'),
                     ),
                     SizedBox(
@@ -278,13 +273,23 @@ class _AddVoiceState extends State<AddVoice> {
                       borderColor: Color(0xff4caf50),
                       callback: () async {
                         if (_formKey.currentState!.validate()) {
+                          // POST request to upload file API
                           await uploadFile();
 
+                          // Success message once the file has successfully been uploaded
                           if (uploadStatus) {
+                            String logs =
+                                "New pre-recorded voice has been saved name ${titleOfAudio}";
+                            print(logs);
+                            // record new log
+                            await API.createLog(logs, "5");
+
+                            // show success message
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text(uploadMessage)),
                             );
 
+                            // return the user to home page screen.
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -292,6 +297,7 @@ class _AddVoiceState extends State<AddVoice> {
                               ),
                             );
                           } else {
+                            // show error message.
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text(uploadMessage)),
                             );

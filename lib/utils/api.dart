@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-const baseUrl = "https://aimaduddin.com/Smart-Doorbell";
+const baseUrl = "https://aimaduddin.com/Smart-Doorbell/";
 
 class API {
   static Future getListOfAudios() {
